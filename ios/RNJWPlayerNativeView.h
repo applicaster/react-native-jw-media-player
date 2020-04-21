@@ -54,6 +54,7 @@
 @property(nonatomic, copy)RCTBubblingEventBlock onControlBarVisible;
 @property(nonatomic, copy)RCTBubblingEventBlock onBeforeComplete;
 @property(nonatomic, copy)RCTBubblingEventBlock onComplete;
+@property(nonatomic, copy)RCTBubblingEventBlock onClose;
 
 -(void)onRNJWReady;
 -(void)onRNJWPlaylist;

@@ -4,8 +4,14 @@
 
 NSString* const AudioInterruptionsStarted = @"AudioInterruptionsStarted";
 NSString* const AudioInterruptionsEnded = @"AudioInterruptionsEnded";
+@interface RNJWPlayerNativeView()
+
+@property (nonatomic, strong) UIButton *closeButton;
+
+@end
 
 @implementation RNJWPlayerNativeView
+
 
 - (id)init {
     self = [super init];
@@ -22,6 +28,69 @@ NSString* const AudioInterruptionsEnded = @"AudioInterruptionsEnded";
 {
     [[NSNotificationCenter defaultCenter] removeObserver:AudioInterruptionsStarted];
     [[NSNotificationCenter defaultCenter] removeObserver:AudioInterruptionsEnded];
+}
+
+- (void)addCloseButtonToView:(UIView *)viewToAdd {
+    [self.closeButton removeFromSuperview];
+    [viewToAdd addSubview:self.closeButton];
+    self.closeButton.translatesAutoresizingMaskIntoConstraints = NO;
+    [self setCloseButtonConstraints:viewToAdd];
+}
+
+- (void)setCloseButtonConstraints:(UIView *) parentView {
+    [self.closeButton.topAnchor constraintEqualToAnchor: parentView.topAnchor constant:50].active = YES;
+    [self.closeButton.leadingAnchor constraintEqualToAnchor: parentView.leadingAnchor constant:50].active = YES;
+    [self.closeButton.heightAnchor constraintEqualToConstant: 32].active = YES;
+    [self.closeButton.widthAnchor constraintEqualToConstant:  32].active = YES;
+}
+
+- (UIButton *)closeButton {
+    if (_closeButton) {
+        return _closeButton;
+    }
+    
+    UIButton *button = [UIButton new];
+    button.titleLabel.font = [UIFont systemFontOfSize:30];
+    [button setTitle:@"X" forState:UIControlStateNormal];
+    [button setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
+    [button setAccessibilityIdentifier:@"jw_player_close_button"];
+    [button addTarget:self action:@selector(closeButtonDidPush)
+     forControlEvents:UIControlEventTouchUpInside];
+    _closeButton = button;
+    return button;
+}
+
+-(void)closeButtonDidPush {
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.closeButton removeFromSuperview];
+    
+        self.player.fullscreen = NO;
+        UIViewController *vc = [UIApplication sharedApplication].keyWindow.rootViewController.presentedViewController;
+        
+                  if (vc) {
+                      [self.player stop];
+                      
+                      [vc.view.window makeKeyAndVisible];
+                      [vc dismissViewControllerAnimated:NO completion:^ {
+                           if (self.onClose) {
+                                        self.onClose(@{});
+                                    }
+
+                      }];
+                      [vc setNeedsStatusBarAppearanceUpdate];
+                      [UIViewController attemptRotationToDeviceOrientation];
+                  }else {
+                if (self.onClose) {
+                    self.onClose(@{});
+                }
+            }
+    });
+}
+
+- (void)adjustButtonAlpha:(BOOL)visible {
+    self.closeButton.alpha = visible ? 1.0 : 0.0;
+
 }
 
 -(void)customStyle: (JWConfig*)config :(NSString*)name
@@ -384,7 +453,7 @@ NSString* const AudioInterruptionsEnded = @"AudioInterruptionsEnded";
         _proxy.delegate = self;
         
         _player = [[JWPlayerController alloc] initWithConfig:config delegate:_proxy];
-        
+        [self addCloseButtonToView:_player.view];
         _player.controls = [[playlistItem objectForKey:@"controls"] boolValue];
         
         [self setFullScreenOnLandscape:_fullScreenOnLandscape];
@@ -464,6 +533,7 @@ NSString* const AudioInterruptionsEnded = @"AudioInterruptionsEnded";
         _proxy.delegate = self;
         
         _player = [[JWPlayerController alloc] initWithConfig:config delegate:_proxy];
+        [self addCloseButtonToView:_player.view];
         
         _player.controls = YES;
         
@@ -590,7 +660,6 @@ NSString* const AudioInterruptionsEnded = @"AudioInterruptionsEnded";
 -(void)onRNJWPlayerTime:(JWEvent<JWTimeEvent> *)event
 {
     if (self.onTime) {
-        NSLog(@"position: %@",@(event.position));
         self.onTime(@{@"position": @(event.position), @"duration": @(event.duration)});
         //        [[NSUserDefaults standardUserDefaults] setObject:@(event.position) forKey:@"PlayerTime"];
     }
@@ -598,11 +667,15 @@ NSString* const AudioInterruptionsEnded = @"AudioInterruptionsEnded";
 
 -(void)onRNJWFullScreen:(JWEvent<JWFullscreenEvent> *)event
 {
-    if(event && [[event valueForKey:@"_fullscreen"] boolValue]){
+    UIView *controlsSuperView = nil;
+
+    if(event && [[event valueForKey:@"_fullscreen"] boolValue]) {
+        controlsSuperView = [UIApplication sharedApplication].keyWindow;
         if (self.onFullScreen) {
             self.onFullScreen(@{});
         }
     }else{
+        controlsSuperView = self.player.view;
         if (self.onFullScreenExit){
             if (_nativeFullScreen) {
                 [[UIDevice currentDevice] setValue: [NSNumber numberWithInteger: UIInterfaceOrientationPortrait] forKey:@"orientation"];
@@ -610,6 +683,9 @@ NSString* const AudioInterruptionsEnded = @"AudioInterruptionsEnded";
             self.onFullScreenExit(@{});
         }
     }
+    [self addCloseButtonToView:controlsSuperView];
+    [self setCloseButtonConstraints:controlsSuperView];
+    
     
 }
 
@@ -673,6 +749,10 @@ NSString* const AudioInterruptionsEnded = @"AudioInterruptionsEnded";
 
 -(void)onRNJWControlBarVisible:(JWEvent<JWControlsEvent> *)event
 {
+  
+    dispatch_async(dispatch_get_main_queue(), ^(void){
+        [self adjustButtonAlpha:event.controls];
+    });
     if (self.onControlBarVisible) {
         self.onControlBarVisible(@{@"controls": @(event.controls)});
     }
