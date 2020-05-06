@@ -14,6 +14,7 @@ import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
+import com.longtailvideo.jwplayer.license.LicenseUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,6 +46,13 @@ public class RNJWPlayerViewManager extends SimpleViewManager<RNJWPlayerView> {
   @Override
   public RNJWPlayerView createViewInstance(ThemedReactContext context) {
     return new RNJWPlayerView(context, mAppContext);
+  }
+
+  @ReactProp(name = "licenceKey")
+  public void setLicenceKey(RNJWPlayerView view, String prop) {
+    if (prop != null) {
+      LicenseUtil.setLicenseKey(mAppContext, prop);
+    }
   }
 
   @ReactProp(name = "file")
