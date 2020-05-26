@@ -1,3 +1,8 @@
+apply plugin: 'com.android.library'
+
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+
 buildscript {
     repositories {
         google()
@@ -9,7 +14,6 @@ buildscript {
     }
 }
 
-apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 28
@@ -44,6 +48,8 @@ allprojects {
 }
 
 dependencies {
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
     implementation 'com.facebook.react:react-native:+'
     implementation 'com.longtailvideo.jwplayer:jwplayer-core:+'
     implementation 'com.longtailvideo.jwplayer:jwplayer-common:+'

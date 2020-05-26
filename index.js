@@ -40,7 +40,6 @@ export const JWPlayerState =
 
 export default class JWPlayer extends Component {
   static propTypes = {
-    licenseKey: PropTypes.string,
     file: PropTypes.string,
     image: PropTypes.string,
     title: PropTypes.string,

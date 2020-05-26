@@ -7,6 +7,7 @@ import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.uimanager.ViewManager;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -15,10 +16,13 @@ public class RNJWPlayerPackage implements ReactPackage {
 
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
-        return Arrays.<NativeModule>asList(new RNJWPlayerModule(reactContext));
+        List<NativeModule> modules = new ArrayList<>();
+        modules.add(new RNJWPlayerModule(reactContext));
+        modules.add(new JWPlayerLicenceContext(reactContext));
+        return modules;
     }
 
-    // Backwards compatability for RN < 0.47
+    // Backwards compatibility for RN < 0.47
     public List<Class<? extends JavaScriptModule>> createJSModules() {
         return Collections.emptyList();
     }

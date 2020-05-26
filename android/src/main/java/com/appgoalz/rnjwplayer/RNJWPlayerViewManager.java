@@ -48,13 +48,6 @@ public class RNJWPlayerViewManager extends SimpleViewManager<RNJWPlayerView> {
     return new RNJWPlayerView(context, mAppContext);
   }
 
-  @ReactProp(name = "licenceKey")
-  public void setLicenceKey(RNJWPlayerView view, String prop) {
-    if (prop != null) {
-      LicenseUtil.setLicenseKey(mAppContext, prop);
-    }
-  }
-
   @ReactProp(name = "file")
   public void setFile(RNJWPlayerView view, String prop) {
     if (view.file!=prop) {
